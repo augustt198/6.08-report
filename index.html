@@ -22,7 +22,7 @@ hits them. Each player wears four receiver modules on their body - two on the ar
 directly to master board on the chest, and one on the back. Using this layout, it is possible for
 a player to get hit from many angles.
 
-<img src="media/receiver_schematic.png">|<img src="media/receiver_layout.png"> 
+<img src="media/receiver_schematic.png">|<img src="media/receiver_layout.png">
 ---|---
 Receiver board schematic | Receiver board PCB layout
 
@@ -35,7 +35,7 @@ trigger button on the laser gun to the ESP32. The input trigger line is used to 
 IR pulses. Having the physical trigger signal and IR pulse signal be separate allows us to implement
 features such as cooldown and ammo limiting.
 
-<img src="media/emitter_schematic.png">|<img src="media/emitter_layout.png"> 
+<img src="media/emitter_schematic.png">|<img src="media/emitter_layout.png">
 ---|---
 Emitter board schematic | Emitter board PCB layout
 
@@ -44,7 +44,7 @@ Emitter board schematic | Emitter board PCB layout
 The master board serves as a centralized place to mount boards (ESP32, power board, DFPlayer)
 and distribute power/signals.
 
-<img src="media/masterboard_schematic.png">|<img src="media/masterboard_layout.png"> 
+<img src="media/masterboard_schematic.png">|<img src="media/masterboard_layout.png">
 ---|---
 Master board schematic | Master board PCB layout
 
@@ -52,7 +52,7 @@ Master board schematic | Master board PCB layout
 
 Cables were cut to length, stripped, crimped, and heat shrunk
 
-<img src="media/cable_crimps.jpg">|<img src="media/cables2.jpg"> 
+<img src="media/cable_crimps.jpg">|<img src="media/cables2.jpg">
 ---|---
 Crimps | Connectivity between boards
 
@@ -78,9 +78,11 @@ the laser gun.
 
 # Software
 
-API definitions:
+## ESP32
 
-### screen.h
+### API definitions:
+
+- screen.h
 
 ```
 void drawStrAt(SCREEN &dis, const char *str, ScreenPos pos, u8g2_uint_t x = 0, u8g2_uint_t y = 0);
@@ -89,11 +91,32 @@ void drawStrAt(SCREEN &dis, const char *str, ScreenPos pos, u8g2_uint_t x = 0, u
 The `drawStrAt` is used throughout the code to draw to the OLED. It takes a string to print
 and use a `ScreenPos` bitfield to set the location.
 
-## State Machine
+### State Machine
 
 <center>
     <img src="media/ui_state_machine.svg">
 </center>
+
+## Server
+
+Game managment and play happen entirely on the server. Through GET requests, users will be able
+to see information about ongoing and previous games, such as all the actions that take place
+(whether a person fired their gun or was hit), all the players currently in a game, all active games
+taking place, and the overall highscores from all the games that have occurred. POST requests
+handle changes to games, which consists of submitting actions that occured and hosting and joining games.
+
+## Software Challenges
+
+Determining a way to end time-based games was a struggle. Originally we wanted to implement a
+server that had web-socket capabilities so we would be able to long-pull from the ESP32 to
+determing when a game should end. This proved to be a bigger obstacle than we anticipated, so we
+decided to have the end time determined by when the host created a game, and whenever a player joins
+that game through a POST request, it returns the time left in the game. This way, there is no need
+for any kind of "syncronization" of clocks multiple times.
+
+# Energy Management
+
+lol
 
 # Parts
 
