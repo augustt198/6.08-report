@@ -62,6 +62,11 @@ Files for the gerbers sent to the fab are available in the downloads section bel
     PCBs as they arrived from China
 </center>
 
+<br>
+
+This is a block diagram of how the various hardware components
+connect:
+
 <center>
     <img src="media/hardware_diagram.svg">
 </center>
@@ -162,6 +167,10 @@ the laser gun.
 ## ESP32
 
 ### State Machine
+
+This diagram shows the states and transitions of the UI displayed on the
+OLED. To simplify the hardware, both buttons A and B are controlled by the
+trigger button, using a long press or double press to differentiate the two.
 
 <center>
     <img src="media/ui_state_machine.svg">
