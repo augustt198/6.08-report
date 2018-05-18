@@ -1,12 +1,24 @@
 <!DOCTYPE html>
 <html>
-<title>6.08 Final Project: Laser Tag</title>
+<head>
+  <meta charset="utf-8">
+  <title>6.08 Final Project: Laser Tag</title>
+</head>
+
+
+<style>
+
+.container { max-width: 900px; }
+
+</style>
 
 <xmp theme="united" style="display:none;">
 
-#Laser Tag
+<center>
+    <h1 style="font-size: 3em">Laser Tag</h1>
+</center>
 
-### 6.08 Spring 2018 | August Trollback, Nickolas Stathas, Ramya Durvasula, Renee Silva
+### 6.08 Spring 2018 – August Trollbäck, Nickolas Stathas, Ramya Durvasula, Renee Silva
 
 # Introduction
 
@@ -41,17 +53,38 @@ and each of the player wrist displays, and a countdown shows every second. Throu
 updates with hits and kills, and orders players in the table. The current leader is always displayed. The game
 ends according to its specific end condition, and each of the ESPs displays game over, the leaderboard is
 cleared, and the website alerts the user of the game winner and his or her score. The information displayed
-on the ESP32 during all points of gameplay is summarized in the state machine below. 
+on the ESP32 during all points of gameplay is summarized in the state machine below.
 
 # Hardware
 
-Three different custom printed circuit boards (PCBs) were designed, and several of each type
+This was a very hardware intensive project. Because DIY laser tag systems are much too expensive,
+it was necessary to create most of the hardware from scratch. While most of the system was completely
+custom, some parts such as the IR receiver IC and
+emitter LED were chosen from recommendations online.
+
+With the goal of having several people play the game at once, with each player having several
+wearable hit detectors (and emitter/laser gun), it would have been very difficult to produce
+enough breadboards or perfboards. Instead, three different custom printed circuit boards (PCBs) were designed, and several of each type
 was subsequently ordered from a Chinese fabricator. The three types of boards are a receiver
 module, an emitter module, and a master board that connects to several receiver modules and
 one emitter module.
 
-Files for the gerbers sent to the fab and the source Altium projects they were generated
-from are available in the downloads section below.
+Files for the gerbers sent to the fab are available in the downloads section below.
+
+<center>
+    <img src="media/pcbs.jpg" width="500px">
+    <br>
+    PCBs as they arrived from China
+</center>
+
+<br>
+
+This is a block diagram of how the various hardware components
+connect:
+
+<center>
+    <img src="media/hardware_diagram.svg">
+</center>
 
 ### Receiver module
 
@@ -92,24 +125,47 @@ of the BJT to ground in order to toggle IR pulses.
 ### Master board
 
 The master board serves as a centralized place to mount boards (ESP32, power board, DFPlayer)
-and distribute power/signals.
+and distribute power/signals to the emitter and receivers.
+
+<img src="media/masterboard_schematic.png">|<img src="media/masterboard_layout.png">
+---|---
+Master board schematic | Master board PCB layout
+
+This PCB was specifically designed to be less than 4" x 4" in size, so that it's within the $5
+minimum price.
 
 ### Connectors/Cables
 
-Cables were cut to length, stripped, crimped, and heat shrunk
+Cables were cut to length, stripped, crimped, and heat shrunk. For the laser gun cables,
+it was necessary to
 
-<img src="media/cable_crimps.jpg" width="60%" style="margin: 0 auto; display: block">
-
-<img src="media/cables2.jpg" width="60%" style="margin: 0 auto; display: block">
+<img src="media/cable_crimps.jpg">|<img src="media/cables2.jpg">
+---|---
+Crimps before and after inserting to housing | Connectivity between boards
 
 ### Laser Gun
 
 The laser gun was modeled in Autodesk inventor and designed so that it could be fitted with the IR
-emitter LED inside the barrel and the driving circuitry in the handle.
+emitter LED inside the barrel and the driving circuitry in the handle. We used a panel mount button
+glued into a 0.5" hole as the trigger. A slot was left open on the top of the gun to make assembly
+easier. The smaller barrel is for a standard 5mm LED that would give visual indication of when the
+laser gun is shooting.
 
 Cutaway rendering of the assembly:
 
 <img src="media/assembly2.png" width="60%" style="margin: 0 auto; display: block">
+
+<center>
+    <img src="media/emitter_2.jpg" width="500px">
+</center>
+
+### OLED Mounting
+
+The OLED was mounted to the wrist using laser-cut acrylic and velcro:
+
+<center>
+    <img src="media/oled.jpg" width="500px">
+</center>
 
 ### Hardware Challenges
 
@@ -125,18 +181,11 @@ the laser gun.
 
 ## ESP32
 
-### API definitions:
-
-- screen.h
-
-```
-void drawStrAt(SCREEN &dis, const char *str, ScreenPos pos, u8g2_uint_t x = 0, u8g2_uint_t y = 0);
-```
-
-The `drawStrAt` is used throughout the code to draw to the OLED. It takes a string to print
-and use a `ScreenPos` bitfield to set the location.
-
 ### State Machine
+
+This diagram shows the states and transitions of the UI displayed on the
+OLED. To simplify the hardware, both buttons A and B are controlled by the
+trigger button, using a long press or double press to differentiate the two.
 
 <center>
     <img src="media/ui_state_machine.svg">
@@ -150,6 +199,230 @@ to see information about ongoing and previous games, such as all the actions tha
 taking place, and the overall highscores from all the games that have occurred. POST requests
 handle changes to games, which consists of submitting actions that occured and hosting and joining games.
 
+### API definitions:
+
+- screen.h
+
+```
+void drawStrAt(SCREEN &dis, const char *str, ScreenPos pos, u8g2_uint_t x = 0, u8g2_uint_t y = 0);
+```
+
+The `drawStrAt` is used throughout the code to draw to the OLED. It takes a string to print
+and use a `ScreenPos` bitfield to set the location.
+
+ScreenPos is a byte type and includes the following enum-like members:
+`T` for top, `M` for middle, `B` for bottom, `L` for left, `C` for center, `R` for right.
+
+They can be ORed together (such as `T | L` for top left) to produce alignment.
+
+`x` and `y` are then added to that allignment to produce an offset.
+
+Thus, printing "Hello World!" 10 units below the center of the `oled` screen can be done with
+`drawStrAt(oled, "Hello World!", C | M, 0, 10);`
+
+- wifilib.ino
+```
+String do_POST(String req);
+String do_GET(String req);
+```
+
+These functions send POST and GET requests to our single 6.08 endpoint using a
+application/x-www-form-urlencoded body or query string respectively.
+
+```
+void wifi_auto_setup();
+void wifi_connect(String network_name, String password = "");
+```
+
+These functions assist with setting up WiFi on boot.
+
+- state.h
+```
+typedef enum {
+  MENU,
+  HIGHSCORE,
+  LOBBY,
+  GAME,
+  HOSTJOIN,
+  JOIN,
+  GAMECONFIG,
+  CHARSELECT,
+  TEAMSELECT,
+  ENDGAME
+} UI_state_T;
+```
+
+```
+typedef enum {
+  NONE,
+  READY,
+} GAME_state_T;
+```
+
+These are the enums of all UI and GAME states as detailed below in a merged FSM.
+
+```
+typedef struct {
+  String status;
+  uint32_t game_length_oj;
+  uint32_t start_time;
+
+  uint16_t shoot_limit;
+  uint16_t immunity_limit;
+
+  uint32_t last_shot;
+  uint32_t last_hit;
+
+  String playerid;
+
+  uint8_t kills;
+  uint8_t deaths;
+} GAME_data_T;
+```
+
+This is the struct in which local information about the current game is kept.
+We instantiate only one global variable of this type.
+Defining this struct instead of bare variables made unit testing functions
+significanlty easier. In the future the ESP code will be much more adaptable to
+continuous integration thanks to this.
+
+- config.h
+
+```
+const int RCV_LED[4] = {5, 16, 33, 19};
+const int RCV_DET[4] = {18, 17, 25, 23};
+#define TRIGGER 35
+#define GUN_LED 32
+...
+```
+
+GPIO configurations were mostly taken through #define, but since we are
+capable of handling 4 receivers at once, keeping them in an array makes it
+easy to use range loops (`for (auto led:RCV_LED) {}`).
+
+- main.ino
+
+This is the file in which most of the substantial game code is located.
+
+```
+void update_ui_state();
+void update_game_state();
+```
+
+These functions handle the UI/printing and game actions (shooting/getting hit)
+respectively. They consist of monolithic switch-cases that handle all state
+transitions.
+
+
+The function below gets called on a 5ms timer interrupt.
+```
+void onTimer() {
+  /// TRIGGER AND UX BUTTON EMULATION
+  // Debounce trigger switch
+  static uint16_t trigstate = 0;
+  trigstate <<= 1;
+  trigstate |= digitalRead(TRIGGER);
+  trigstate |= 0xe000;
+
+  bool triger_edge = (trigstate == 0xf000);
+
+  // Hold this value until manually cleared
+  trigger |= triger_edge;
+```
+
+The code above is the debouncer for the trigger switch. Its assembly footprint is
+tiny, but it works great. trigger_edge debounces and detects rising edges, and
+those constantly get ORed into a global state variable to be handled by our FSMs.
+
+The reason constant ORing is necessary is because `trigger` is volatile and is on
+for exactly one cycle of this timer -- 5ms. This is likely not enough time
+considering the delays imposed on the FSM updates due to printing and doing
+HTTP requests. ORing gives the FSM a chance to poll this variable and clear
+it at its discretion.
+
+```
+  // Determine if this also is a double tap or a long hold
+  static uint32_t last_rising = 0;
+  static bool unbroken = false;
+
+  if (unbroken) {
+    if (digitalRead(TRIGGER)) {
+      // Serial.println("BROKEN");
+      unbroken = false;
+    }
+    else if (millis() - last_rising > LONG_HOLD) {
+      // Serial.println("LONG HOLD");
+      butB = true;
+
+      // Break the streak to cause an edge.
+      unbroken = false;
+    }
+  }
+
+  if (triger_edge) {
+    // Serial.println("shooooot");
+
+    if (millis() - last_rising < DOUBLE_TAP) {
+      // Serial.println("DOUBLE_TAP");
+      butA = true;
+
+      // Prevent quadruple taps and so forth
+      unbroken = false;
+      last_rising = 0;
+    }
+    else {
+      last_rising = millis();
+      unbroken = true;
+    }
+  }
+```
+
+This above code uses the trigger_edge to emulate our A and B buttons.
+A gets triggered on a detected *double tap*, and B on a *long hold*.
+
+```
+  /// RECEIVER DETECTION
+  static bool rcv_debounce_state[LEN(RCV_DET)]    = {};
+  static uint32_t rcv_debounce_edge[LEN(RCV_DET)] = {};
+
+  for (size_t i = 0; i < LEN(RCV_DET); ++i) {
+    if (digitalRead(RCV_DET[i]) == LOW) {
+      if (!rcv_debounce_state[i]) {
+        rcv_debounce_edge[i] = millis();
+        rcv_debounce_state[i] = true;
+      }
+      else if (millis() - rcv_debounce_edge[i] > RCV_SETUP) {
+        rcv_state[i] = true;
+      }
+    }
+    else {
+      if (rcv_debounce_state[i]) {
+        // Serial.print(i); Serial.print(" lasted for "); Serial.println(millis() - rcv_debounce_edge[i]);
+        rcv_debounce_edge[i] = millis();
+        rcv_debounce_state[i] = false;
+      }
+      else if (millis() - rcv_debounce_edge[i] > RCV_HOLD) {
+        rcv_state[i] = false;
+      }
+    }
+  }
+
+  // Update receiver LEDs
+  for(int i = 0; i < LEN(RCV_LED); i++) digitalWrite(RCV_LED[i], rcv_state[i]);
+}
+```
+
+This last part of the, arguably long timer interrupt, deals with the receivers
+being shot at. `LEN` here is just a macro that wraps `sizeof`.
+
+This is what we call a SETUP and HOLD debouncer that solves the TV remote problem.
+To tune it, one needs to specify the SETUP and HOLD times. To trigger a rising edge,
+the signal must have remained HIGH for at least SETUP milliseconds.
+The falling edge triggers HOLD milliseconds after the signal becomes consistently LOW.
+
+By tuning the SETUP threshold we solve the TV remote issue and by tuning
+the HOLD threshold we deal with EMI or other hardware issues.
+
 ## Software Challenges
 
 Determining a way to end time-based games was a struggle. Originally we wanted to implement a
@@ -161,7 +434,13 @@ for any kind of "syncronization" of clocks multiple times.
 
 # Energy Management
 
-lol
+Minimizing energy usage was not a top priority on this project, but we believe our
+system is still fairly efficient. Because the high current devices such as the speaker
+(up to 1A draw) and LEDs (up to ~100mA total) are only on intermittently, such as during
+shooting or being hit, the most significant power draw is from items in the base kit
+such as the ESP32 and OLED. If we wanted to reduce power more, it would be possible
+to take measures such as decreasing the volume of the speaker, or using PWM to make
+the LEDs less bright.
 
 # Parts List
 
@@ -181,6 +460,7 @@ Bright red LED | [C503B-RAS-CA0C0AA1-ND](https://www.digikey.com/product-detail/
 Flat 4 conductor cable | [CN263-100-ND](https://www.digikey.com/product-detail/en/cnc-tech/530-26-04-WH-0100F/CN263-100-ND/3442477) | For making cables
 IR receiver | [TSOP34856-ND](https://www.digikey.com/products/en?keywords=TSOP34856) | 56kHz receiver
 IR emitter | [751-1203-ND](https://www.digikey.com/products/en?keywords=751-1203-ND) | 100mA LED emitter
+Panel mount button | [EG1930-ND](https://www.digikey.com/products/en?keywords=EG1930-ND) | Laser gun trigger
 LM555 timer IC | - | 56kHz square wave generation
 Resistor 500 ohm | - | 555 timer configuration
 Resistor 13K | - | 555 timer configuration
