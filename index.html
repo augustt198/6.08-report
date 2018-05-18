@@ -26,7 +26,7 @@ with the game server, which keeps track of the current game, its players, and al
 the game server keeps track of high scores. The website is used to start games, view scores during games, and
 forceably end games if need be.
 
-Typical gameplay 
+Typical gameplay
 
 # Hardware
 
@@ -120,6 +120,205 @@ void drawStrAt(SCREEN &dis, const char *str, ScreenPos pos, u8g2_uint_t x = 0, u
 
 The `drawStrAt` is used throughout the code to draw to the OLED. It takes a string to print
 and use a `ScreenPos` bitfield to set the location.
+
+ScreenPos is a byte type and includes the following enum-like members:
+`T` for top, `M` for middle, `B` for bottom, `L` for left, `C` for center, `R` for right.
+
+They can be ORed together (such as `T | L` for top left) to produce alignment.
+
+`x` and `y` are then added to that allignment to produce an offset.
+
+Thus, printing "Hello World!" 10 units below the center of the `oled` screen can be done with
+`drawStrAt(oled, "Hello World!", C | M, 0, 10);`
+
+- wifilib.ino
+```
+String do_POST(String req);
+String do_GET(String req);
+```
+
+These functions send POST and GET requests to our single 6.08 endpoint using a
+application/x-www-form-urlencoded body or query string respectively.
+
+```
+void wifi_auto_setup();
+void wifi_connect(String network_name, String password = "");
+```
+
+These functions assist with setting up WiFi on boot.
+
+- state.h
+```
+typedef enum {
+  MENU,
+  HIGHSCORE,
+  LOBBY,
+  GAME,
+  HOSTJOIN,
+  JOIN,
+  GAMECONFIG,
+  CHARSELECT,
+  TEAMSELECT,
+  ENDGAME
+} UI_state_T;
+```
+
+```
+typedef enum {
+  NONE,
+  READY,
+} GAME_state_T;
+```
+
+These are the enums of all UI and GAME states as detailed below in a merged FSM.
+
+```
+typedef struct {
+  String status;
+  uint32_t game_length_oj;
+  uint32_t start_time;
+
+  uint16_t shoot_limit;
+  uint16_t immunity_limit;
+
+  uint32_t last_shot;
+  uint32_t last_hit;
+
+  String playerid;
+
+  uint8_t kills;
+  uint8_t deaths;
+} GAME_data_T;
+```
+
+This is the struct in which local information about the current game is kept.
+We instantiate only one global variable of this type.
+Defining this struct instead of bare variables made unit testing functions
+significanlty easier. In the future the ESP code will be much more adaptable to
+continuous integration thanks to this.
+
+- config.h
+
+```
+const int RCV_LED[4] = {5, 16, 33, 19};
+const int RCV_DET[4] = {18, 17, 25, 23};
+#define TRIGGER 35
+#define GUN_LED 32
+...
+```
+
+GPIO configurations were mostly taken through #define, but since we are
+capable of handling 4 receivers at once, keeping them in an array makes it
+easy to use range loops (`for (auto led:RCV_LED) {}`).
+
+- main.ino
+
+This is the file in which most of the substantial game code is located.
+
+```
+void update_ui_state();
+void update_game_state();
+```
+
+These functions handle the UI/printing and game actions (shooting/getting hit)
+respectively. They consist of monolithic switch-cases that handle all state
+transitions.
+
+
+The function below gets called on a 5ms timer interrupt.
+```
+void onTimer() {
+  /// TRIGGER AND UX BUTTON EMULATION
+  // Debounce trigger switch
+  static uint16_t trigstate = 0;
+  trigstate <<= 1;
+  trigstate |= digitalRead(TRIGGER);
+  trigstate |= 0xe000;
+
+  bool triger_edge = (trigstate == 0xf000);
+
+  // Hold this value until manually cleared
+  trigger |= triger_edge;
+```
+
+The code above is the debouncer for the trigger switch. Its assembly footprint is
+tiny, but it works great. trigger_edge debounces and detects rising edges, and
+those constantly get ORed into a global state variable to be handled by our FSMs.
+
+The reason constant ORing is necessary is because `trigger` is volatile and is on
+for exactly one cycle of this timer -- 5ms. This is likely not enough time
+considering the delays imposed on the FSM updates due to printing and doing
+HTTP requests. ORing gives the FSM a chance to poll this variable and clear
+it at its discretion.  
+
+```
+  // Determine if this also is a double tap or a long hold
+  static uint32_t last_rising = 0;
+  static bool unbroken = false;
+
+  if (unbroken) {
+    if (digitalRead(TRIGGER)) {
+      // Serial.println("BROKEN");
+      unbroken = false;
+    }
+    else if (millis() - last_rising > LONG_HOLD) {
+      // Serial.println("LONG HOLD");
+      butB = true;
+
+      // Break the streak to cause an edge.
+      unbroken = false;
+    }
+  }
+
+  if (triger_edge) {
+    // Serial.println("shooooot");
+
+    if (millis() - last_rising < DOUBLE_TAP) {
+      // Serial.println("DOUBLE_TAP");
+      butA = true;
+
+      // Prevent quadruple taps and so forth
+      unbroken = false;
+      last_rising = 0;
+    }
+    else {
+      last_rising = millis();
+      unbroken = true;
+    }
+  }
+
+
+  /// RECEIVER DETECTION
+  static bool rcv_debounce_state[LEN(RCV_DET)]    = {};
+  static uint32_t rcv_debounce_edge[LEN(RCV_DET)] = {};
+
+  for (size_t i = 0; i < LEN(RCV_DET); ++i) {
+    if (digitalRead(RCV_DET[i]) == LOW) {
+      if (!rcv_debounce_state[i]) {
+        rcv_debounce_edge[i] = millis();
+        rcv_debounce_state[i] = true;
+      }
+      else if (millis() - rcv_debounce_edge[i] > RCV_SETUP) {
+        rcv_state[i] = true;
+      }
+    }
+    else {
+      if (rcv_debounce_state[i]) {
+        // Serial.print(i); Serial.print(" lasted for "); Serial.println(millis() - rcv_debounce_edge[i]);
+        rcv_debounce_edge[i] = millis();
+        rcv_debounce_state[i] = false;
+      }
+      else if (millis() - rcv_debounce_edge[i] > RCV_HOLD) {
+        rcv_state[i] = false;
+      }
+    }
+  }
+
+  // Update receiver LEDs
+  for(int i = 0; i < LEN(RCV_LED); i++) digitalWrite(RCV_LED[i], rcv_state[i]);
+}
+```
+
 
 ### State Machine
 
