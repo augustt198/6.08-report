@@ -207,6 +207,38 @@ the cable.
 - PNP transistor used to control a visual LED on the laser gun didn't work, so we just didn't use visual light LEDs on
 the laser gun.
 
+# Experimental Detour
+So far all we have are what we called "TV remotes" minus the actual information
+modulation over the signal. We needed a way to identify and weed out reflections,
+indirect hits, and external IR sources from triggering our receivers.
+
+After playing with some debouncers (more detail below), we decided to study the
+relationship between the transmitter's on time (transmission duration)
+and the duration of the received signal.
+
+This is a highly dimensional relationship, being affected by factors including:
+- transmission duration (non linearly is our experience)
+- environmental lighting
+- environmental reflective structure
+- modulation frequency
+- shot distance
+- impact angle
+
+We decided to do a ceteris paribus analysis and pegged all values except for angle.
+
+Using a dark room, a black backdrop, a ruler to maintain a set distance from the receiver,
+and a protractor to measure the shot angle we set up the following:
+
+<img src="media/experiment1.jpg"> | <img src="media/experiment2.jpg">
+---|---
+
+From this we gathered data which confirms an inverse relation between the receiving duration and angle.
+<center>
+  <img src="media/chart.png">
+</center>
+
+where y is 1 / t_rec.duration in ms^-1 and x is the angle in degrees.
+
 # Software
 
 ## ESP32
@@ -220,14 +252,6 @@ trigger button, using a long press or double press to differentiate the two.
 <center>
     <img src="media/ui_state_machine.svg">
 </center>
-
-## Server
-
-Game managment and play happen entirely on the server. Through GET requests, users will be able
-to see information about ongoing and previous games, such as all the actions that take place
-(whether a person fired their gun or was hit), all the players currently in a game, all active games
-taking place, and the overall highscores from all the games that have occurred. POST requests
-handle changes to games, which consists of submitting actions that occured and hosting and joining games.
 
 ### API definitions:
 
@@ -453,6 +477,43 @@ The falling edge triggers HOLD milliseconds after the signal becomes consistentl
 By tuning the SETUP threshold we solve the TV remote issue and by tuning
 the HOLD threshold we deal with EMI or other hardware issues.
 
+## Website
+
+Our web app dashboard is implemented using a simple Bootstrap grid layout and
+a javascript function running within a fast setInterval.
+
+We use promised HHTP requests through the new fetch function that is slowly
+becoming the new standard. We implemented endpoints on our backend dedicated to
+this website. For manageability purposes starting and ending games can happen
+through the dashboard too. Due to the lack of buttons, there is no intuitive
+way to have UI interactions while in-game, hence why game lifecycle buttons on
+our web app turn out to be quite useful.
+
+## Server
+
+Game managment and play happen entirely on the server. Through GET requests, users will be able
+to see information about ongoing and previous games, such as all the actions that take place
+(whether a person fired their gun or was hit), all the players currently in a game, all active games
+taking place, and the overall highscores from all the games that have occurred. POST requests
+handle changes to games, which consists of submitting actions that occured and hosting and joining games.
+
+Below you can find our database schema
+```
+c.execute('''CREATE TABLE IF NOT EXISTS actions (id integer primary key AUTOINCREMENT, timing timestamp, action text, pid integer, isValid boolean);''')
+c.execute('''CREATE TABLE IF NOT EXISTS players (id integer primary key AUTOINCREMENT, name text, team text, kills integer, deaths integer);''')
+c.execute('''CREATE TABLE IF NOT EXISTS highscores (name text primary key UNIQUE, kills integer);''')
+c.execute('''CREATE TABLE IF NOT EXISTS games (gameid integer primary key AUTOINCREMENT, game_type text, end_cond text, game_state integer, hostname text, endtime timestamp);''')
+```
+
+Upon joining, the client must remember their player id in order to be able to make
+personalized requests.
+
+Due to the severe limitations of the 6.08 server, we did not consider modularizing
+the code beyond splitting server side actions into functions invoked by our request handler.
+Lack of proper routing and method support that is native to Flask meant that we
+had to opt for url-encoded endpoint emulation.
+
+
 ## Software Challenges
 
 Determining a way to end time-based games was a struggle. Originally we wanted to implement a
@@ -461,6 +522,10 @@ determing when a game should end. This proved to be a bigger obstacle than we an
 decided to have the end time determined by when the host created a game, and whenever a player joins
 that game through a POST request, it returns the time left in the game. This way, there is no need
 for any kind of "syncronization" of clocks multiple times.
+
+<center>
+    <iframe width="700" height="400" src="https://www.youtube.com/embed/4ykTQO8X8RM" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</center>
 
 # Energy Management
 
