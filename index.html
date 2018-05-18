@@ -177,6 +177,38 @@ the cable.
 - PNP transistor used to control a visual LED on the laser gun didn't work, so we just didn't use visual light LEDs on
 the laser gun.
 
+# Experimental Detour
+So far all we have are what we called "TV remotes" minus the actual information
+modulation over the signal. We needed a way to identify and weed out reflections,
+indirect hits, and external IR sources from triggering our receivers.
+
+After playing with some debouncers (more detail below), we decided to study the
+relationship between the transmitter's on time (transmission duration)
+and the duration of the received signal.
+
+This is a highly dimensional relationship, being affected by factors including:
+- transmission duration (non linearly is our experience)
+- environmental lighting
+- environmental reflective structure
+- modulation frequency
+- shot distance
+- impact angle
+
+We decided to do a ceteris paribus analysis and pegged all values except for angle.
+
+Using a dark room, a black backdrop, a ruler to maintain a set distance from the receiver,
+and a protractor to measure the shot angle we set up the following:
+
+<img src="media/experiment1.jpg"> | <img src="media/experiment2.jpg">
+---|---
+
+From this we gathered data which confirms an inverse relation between the receiving duration and angle.
+<center>
+  <img src="media/chart.png">
+</center>
+
+where y is 1 / t_rec.duration in ms^-1 and x is the angle in degrees.
+
 # Software
 
 ## ESP32
