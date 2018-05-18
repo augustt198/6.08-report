@@ -406,7 +406,13 @@ for any kind of "syncronization" of clocks multiple times.
 
 # Energy Management
 
-lol
+Minimizing energy usage was not a top priority on this project, but we believe our
+system is still fairly efficient. Because the high current devices such as the speaker
+(up to 1A draw) and LEDs (up to ~100mA total) are only on intermittently, such as during
+shooting or being hit, the most significant power draw is from items in the base kit
+such as the ESP32 and OLED. If we wanted to reduce power more, it would be possible
+to take measures such as decreasing the volume of the speaker, or using PWM to make
+the LEDs less bright.
 
 # Parts List
 
