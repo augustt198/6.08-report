@@ -161,6 +161,20 @@ the laser gun.
 
 ## ESP32
 
+### State Machine
+
+<center>
+    <img src="media/ui_state_machine.svg">
+</center>
+
+## Server
+
+Game managment and play happen entirely on the server. Through GET requests, users will be able
+to see information about ongoing and previous games, such as all the actions that take place
+(whether a person fired their gun or was hit), all the players currently in a game, all active games
+taking place, and the overall highscores from all the games that have occurred. POST requests
+handle changes to games, which consists of submitting actions that occured and hosting and joining games.
+
 ### API definitions:
 
 - screen.h
@@ -384,20 +398,6 @@ The falling edge triggers HOLD milliseconds after the signal becomes consistentl
 
 By tuning the SETUP threshold we solve the TV remote issue and by tuning
 the HOLD threshold we deal with EMI or other hardware issues.
-
-### State Machine
-
-<center>
-    <img src="media/ui_state_machine.svg">
-</center>
-
-## Server
-
-Game managment and play happen entirely on the server. Through GET requests, users will be able
-to see information about ongoing and previous games, such as all the actions that take place
-(whether a person fired their gun or was hit), all the players currently in a game, all active games
-taking place, and the overall highscores from all the games that have occurred. POST requests
-handle changes to games, which consists of submitting actions that occured and hosting and joining games.
 
 ## Software Challenges
 
