@@ -2,11 +2,19 @@
 <html>
 <title>6.08 Final Project: Laser Tag</title>
 
+<style>
+
+.container { max-width: 900px; }
+
+</style>
+
 <xmp theme="united" style="display:none;">
 
-#Laser Tag
+<center>
+    <h1 style="font-size: 3em">Laser Tag</h1>
+</center>
 
-### 6.08 Spring 2018 | August Trollback, Nickolas Stathas, Ramya Durvasula, Renee Silva
+### 6.08 Spring 2018 – August Trollbäck, Nickolas Stathas, Ramya Durvasula, Renee Silva
 
 # Introduction
 
@@ -30,13 +38,29 @@ Typical gameplay
 
 # Hardware
 
-Three different custom printed circuit boards (PCBs) were designed, and several of each type
+This was a very hardware intensive project. Because DIY laser tag systems are much too expensive,
+it was necessary to create most of the hardware from scratch. While most of the system was completely
+custom, some parts such as the IR receiver IC and
+emitter LED were chosen from recommendations online.
+
+With the goal of having several people play the game at once, with each player having several
+wearable hit detectors (and emitter/laser gun), it would have been very difficult to produce
+enough breadboards or perfboards. Instead, three different custom printed circuit boards (PCBs) were designed, and several of each type
 was subsequently ordered from a Chinese fabricator. The three types of boards are a receiver
 module, an emitter module, and a master board that connects to several receiver modules and
 one emitter module.
 
-Files for the gerbers sent to the fab and the source Altium projects they were generated
-from are available in the downloads section below.
+Files for the gerbers sent to the fab are available in the downloads section below.
+
+<center>
+    <img src="media/pcbs.jpg" width="500px">
+    <br>
+    PCBs as they arrived from China
+</center>
+
+<center>
+    <img src="media/hardware_diagram.svg">
+</center>
 
 ### Receiver module
 
@@ -77,24 +101,47 @@ of the BJT to ground in order to toggle IR pulses.
 ### Master board
 
 The master board serves as a centralized place to mount boards (ESP32, power board, DFPlayer)
-and distribute power/signals.
+and distribute power/signals to the emitter and receivers.
+
+<img src="media/masterboard_schematic.png">|<img src="media/masterboard_layout.png">
+---|---
+Master board schematic | Master board PCB layout
+
+This PCB was specifically designed to be less than 4" x 4" in size, so that it's within the $5
+minimum price.
 
 ### Connectors/Cables
 
-Cables were cut to length, stripped, crimped, and heat shrunk
+Cables were cut to length, stripped, crimped, and heat shrunk. For the laser gun cables,
+it was necessary to 
 
-<img src="media/cable_crimps.jpg" width="60%" style="margin: 0 auto; display: block">
-
-<img src="media/cables2.jpg" width="60%" style="margin: 0 auto; display: block">
+<img src="media/cable_crimps.jpg">|<img src="media/cables2.jpg">
+---|---
+Crimps before and after inserting to housing | Connectivity between boards
 
 ### Laser Gun
 
 The laser gun was modeled in Autodesk inventor and designed so that it could be fitted with the IR
-emitter LED inside the barrel and the driving circuitry in the handle.
+emitter LED inside the barrel and the driving circuitry in the handle. We used a panel mount button
+glued into a 0.5" hole as the trigger. A slot was left open on the top of the gun to make assembly
+easier. The smaller barrel is for a standard 5mm LED that would give visual indication of when the
+laser gun is shooting.
 
 Cutaway rendering of the assembly:
 
 <img src="media/assembly2.png" width="60%" style="margin: 0 auto; display: block">
+
+<center>
+    <img src="media/emitter_2.jpg" width="500px">
+</center>
+
+### OLED Mounting
+
+The OLED was mounted to the wrist using laser-cut acrylic and velcro:
+
+<center>
+    <img src="media/oled.jpg" width="500px">
+</center>
 
 ### Hardware Challenges
 
@@ -365,6 +412,7 @@ Bright red LED | [C503B-RAS-CA0C0AA1-ND](https://www.digikey.com/product-detail/
 Flat 4 conductor cable | [CN263-100-ND](https://www.digikey.com/product-detail/en/cnc-tech/530-26-04-WH-0100F/CN263-100-ND/3442477) | For making cables
 IR receiver | [TSOP34856-ND](https://www.digikey.com/products/en?keywords=TSOP34856) | 56kHz receiver
 IR emitter | [751-1203-ND](https://www.digikey.com/products/en?keywords=751-1203-ND) | 100mA LED emitter
+Panel mount button | [EG1930-ND](https://www.digikey.com/products/en?keywords=EG1930-ND) | Laser gun trigger
 LM555 timer IC | - | 56kHz square wave generation
 Resistor 500 ohm | - | 555 timer configuration
 Resistor 13K | - | 555 timer configuration
