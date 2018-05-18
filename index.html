@@ -24,9 +24,24 @@ and a handheld infrared emitter (the gun). Each ESP32 and its associated compone
 to a wearable device, and are connected via wires. The ESP32s use HTML GET and POST requests to communicate
 with the game server, which keeps track of the current game, its players, and all game actions. Additionally,
 the game server keeps track of high scores. The website is used to start games, view scores during games, and
-forceably end games if need be.
+forceably end games if need be. Although originally intended to be played as a 2v2 game, and ultimately
+demonstrated as a 3-player game, the software can handle any number of players.
 
-Typical gameplay 
+Each player wears an OLED display on his or her wrist, which is wired to the ESP32. Upon starting, and
+after connecting to WiFi, the OLED shows two options: Play and High Scores. The user navigates between menus
+by pressing the trigger on the gun; two short presses is equivalent to pressing [A], and one long press
+is equivalent to pressing [B]. The player can press [A] from the high scores list, which shows the top three
+scores, to return to the main menu. When a player chooses to play the game, he or she is given different options
+depending on the other players. If there are no games currently waiting to be started, the player will be able
+to choose between three game modes; game modes are summarized below in "Game Options." After selecting game
+modes, the player will choose his or her team, then his or her character name, and will then be directed
+to a screen that says "Waiting for players to join...". After all players have joined, one person has to click
+"Start Game" on the website, and the game will begin. The clock is synchronized on the website, the server,
+and each of the player wrist displays, and a countdown shows every second. Throughout the game, the website
+updates with hits and kills, and orders players in the table. The current leader is always displayed. The game
+ends according to its specific end condition, and each of the ESPs displays game over, the leaderboard is
+cleared, and the website alerts the user of the game winner and his or her score. The information displayed
+on the ESP32 during all points of gameplay is summarized in the state machine below. 
 
 # Hardware
 
