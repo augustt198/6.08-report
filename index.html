@@ -15,16 +15,26 @@ was subsequently ordered from a Chinese fabricator. The three types of boards ar
 module, an emitter module, and a master board that connects to several receiver modules and
 one emitter module.
 
+Files for the gerbers sent to the fab and the source Altium projects they were generated
+from are available in the downloads section below.
+
 ### Receiver module
 
 The receiver modules have IR receivers that are activated when IR at a specific frequency (~56kHz)
-hits them. Each player wears four receiver modules on their body - two on the arms, one soldered
+hits them. Up to four receiver modules per player are supported - two on the arms, one soldered
 directly to master board on the chest, and one on the back. Using this layout, it is possible for
 a player to get hit from many angles.
 
 <img src="media/receiver_schematic.png">|<img src="media/receiver_layout.png">
 ---|---
 Receiver board schematic | Receiver board PCB layout
+
+The receivers use a TSOP34856 IC, which is usually used in remote control applications. The only
+external components it needs is a pullup resistor and bypass cap. It's possible to mount two
+TSOP34856 ICs for a wider range of hit detection angles, but we only populated one per board.
+The receiver modules also have
+a very bright (when viewed directly) LED in the color of the player's team, which is switched
+by the ESP32 through a BJT transistor.
 
 ### Emitter module
 
@@ -38,6 +48,11 @@ features such as cooldown and ammo limiting.
 <img src="media/emitter_schematic.png">|<img src="media/emitter_layout.png">
 ---|---
 Emitter board schematic | Emitter board PCB layout
+
+The circuit driving the IR emitter is a 555 timer. Viewed on a scope, the frequency generated is 54kHz.
+The output of the 555 timer is amplified with a BJT transistor to drive the emitter at around 50mA
+(the LED is rated for up to 100mA). The input trigger line coming from the ESP32 is used to pull the base
+of the BJT to ground in order to toggle IR pulses.
 
 ### Master board
 
@@ -118,9 +133,7 @@ for any kind of "syncronization" of clocks multiple times.
 
 lol
 
-# Parts
-
-Parts list:
+# Parts List
 
 Part | PN | Purpose
 -----|-------|--------
@@ -144,6 +157,13 @@ Resistor 13K | - | 555 timer configuration
 Resistor 68 ohm | - | IR LED current limiting
 DFPlayer Mini | [DFPlayer Mini](https://www.dfrobot.com/wiki/index.php/DFPlayer_Mini_SKU:DFR0299) | Speaker amplifier
 3W 8ohm speaker | - | speakers
+
+# Downloads
+
+
+- [Receiver module PCB gerbers](downloads/receiver_gerber.zip)
+- [Emitter module PCB gerbers](downloads/emitter_gerber.zip)
+- [Master board PCB gerbers](downloads/masterboard_gerber.zip)
 
 
 </xmp>
