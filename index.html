@@ -36,9 +36,24 @@ and a handheld infrared emitter (the gun). Each ESP32 and its associated compone
 to a wearable device, and are connected via wires. The ESP32s use HTML GET and POST requests to communicate
 with the game server, which keeps track of the current game, its players, and all game actions. Additionally,
 the game server keeps track of high scores. The website is used to start games, view scores during games, and
-forceably end games if need be.
+forceably end games if need be. Although originally intended to be played as a 2v2 game, and ultimately
+demonstrated as a 3-player game, the software can handle any number of players.
 
-Typical gameplay
+Each player wears an OLED display on his or her wrist, which is wired to the ESP32. Upon starting, and
+after connecting to WiFi, the OLED shows two options: Play and High Scores. The user navigates between menus
+by pressing the trigger on the gun; two short presses is equivalent to pressing [A], and one long press
+is equivalent to pressing [B]. The player can press [A] from the high scores list, which shows the top three
+scores, to return to the main menu. When a player chooses to play the game, he or she is given different options
+depending on the other players. If there are no games currently waiting to be started, the player will be able
+to choose between three game modes; game modes are summarized below in "Game Options." After selecting game
+modes, the player will choose his or her team, then his or her character name, and will then be directed
+to a screen that says "Waiting for players to join...". After all players have joined, one person has to click
+"Start Game" on the website, and the game will begin. The clock is synchronized on the website, the server,
+and each of the player wrist displays, and a countdown shows every second. Throughout the game, the website
+updates with hits and kills, and orders players in the table. The current leader is always displayed. The game
+ends according to its specific end condition, and each of the ESPs displays game over, the leaderboard is
+cleared, and the website alerts the user of the game winner and his or her score. The information displayed
+on the ESP32 during all points of gameplay is summarized in the state machine below.
 
 # Hardware
 
@@ -61,6 +76,11 @@ Files for the gerbers sent to the fab are available in the downloads section bel
     <br>
     PCBs as they arrived from China
 </center>
+
+<br>
+
+This is a block diagram of how the various hardware components
+connect:
 
 <center>
     <img src="media/hardware_diagram.svg">
@@ -162,6 +182,10 @@ the laser gun.
 ## ESP32
 
 ### State Machine
+
+This diagram shows the states and transitions of the UI displayed on the
+OLED. To simplify the hardware, both buttons A and B are controlled by the
+trigger button, using a long press or double press to differentiate the two.
 
 <center>
     <img src="media/ui_state_machine.svg">
@@ -436,6 +460,10 @@ determing when a game should end. This proved to be a bigger obstacle than we an
 decided to have the end time determined by when the host created a game, and whenever a player joins
 that game through a POST request, it returns the time left in the game. This way, there is no need
 for any kind of "syncronization" of clocks multiple times.
+
+<center>
+    <iframe width="700" height="400" src="https://www.youtube.com/embed/4ykTQO8X8RM" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</center>
 
 # Energy Management
 
