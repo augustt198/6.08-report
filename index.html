@@ -38,7 +38,14 @@ Typical gameplay
 
 # Hardware
 
-Three different custom printed circuit boards (PCBs) were designed, and several of each type
+This was a very hardware intensive project. Because DIY laser tag systems are much too expensive,
+it was necessary to create most of the hardware from scratch. While most of the system was completely
+custom, some parts such as the IR receiver IC and
+emitter LED were chosen from recommendations online.
+
+With the goal of having several people play the game at once, with each player having several
+wearable hit detectors (and emitter/laser gun), it would have been very difficult to produce
+enough breadboards/perfboards. Instead, three different custom printed circuit boards (PCBs) were designed, and several of each type
 was subsequently ordered from a Chinese fabricator. The three types of boards are a receiver
 module, an emitter module, and a master board that connects to several receiver modules and
 one emitter module.
@@ -85,20 +92,31 @@ of the BJT to ground in order to toggle IR pulses.
 ### Master board
 
 The master board serves as a centralized place to mount boards (ESP32, power board, DFPlayer)
-and distribute power/signals.
+and distribute power/signals to the emitter and receivers.
+
+<img src="media/masterboard_schematic.png">|<img src="media/masterboard_layout.png">
+---|---
+Master board schematic | Master board PCB layout
+
+This PCB was specifically designed to be less than 4" x 4" in size, so that it's within the $5
+minimum price.
 
 ### Connectors/Cables
 
-Cables were cut to length, stripped, crimped, and heat shrunk
+Cables were cut to length, stripped, crimped, and heat shrunk. For the laser gun cables,
+it was necessary to 
 
-<img src="media/cable_crimps.jpg" width="60%" style="margin: 0 auto; display: block">
-
-<img src="media/cables2.jpg" width="60%" style="margin: 0 auto; display: block">
+<img src="media/cable_crimps.jpg">|<img src="media/cables2.jpg">
+---|---
+Crimps before and after inserting to housing | Connectivity between boards
 
 ### Laser Gun
 
 The laser gun was modeled in Autodesk inventor and designed so that it could be fitted with the IR
-emitter LED inside the barrel and the driving circuitry in the handle.
+emitter LED inside the barrel and the driving circuitry in the handle. We used a panel mount button
+glued into a 0.5" hole as the trigger. A slot was left open on the top of the gun to make assembly
+easier. The smaller barrel is for a standard 5mm LED that would give visual indication of when the
+laser gun is shooting.
 
 Cutaway rendering of the assembly:
 
