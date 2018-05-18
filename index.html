@@ -2,9 +2,6 @@
 <html>
 <title>6.08 Final Project: Laser Tag</title>
 
-<head>
-    <meta charset="utf-8">
-</head>
 <style>
 
 .container { max-width: 900px; }
@@ -116,7 +113,7 @@ minimum price.
 ### Connectors/Cables
 
 Cables were cut to length, stripped, crimped, and heat shrunk. For the laser gun cables,
-it was necessary to 
+it was necessary to
 
 <img src="media/cable_crimps.jpg">|<img src="media/cables2.jpg">
 ---|---
@@ -299,7 +296,7 @@ The reason constant ORing is necessary is because `trigger` is volatile and is o
 for exactly one cycle of this timer -- 5ms. This is likely not enough time
 considering the delays imposed on the FSM updates due to printing and doing
 HTTP requests. ORing gives the FSM a chance to poll this variable and clear
-it at its discretion.  
+it at its discretion.
 
 ```
   // Determine if this also is a double tap or a long hold
@@ -336,8 +333,12 @@ it at its discretion.
       unbroken = true;
     }
   }
+```
 
+This above code uses the trigger_edge to emulate our A and B buttons.
+A gets triggered on a detected *double tap*, and B on a *long hold*.
 
+```
   /// RECEIVER DETECTION
   static bool rcv_debounce_state[LEN(RCV_DET)]    = {};
   static uint32_t rcv_debounce_edge[LEN(RCV_DET)] = {};
@@ -369,6 +370,16 @@ it at its discretion.
 }
 ```
 
+This last part of the, arguably long timer interrupt, deals with the receivers
+being shot at. `LEN` here is just a macro that wraps `sizeof`.
+
+This is what we call a SETUP and HOLD debouncer that solves the TV remote problem.
+To tune it, one needs to specify the SETUP and HOLD times. To trigger a rising edge,
+the signal must have remained HIGH for at least SETUP milliseconds.
+The falling edge triggers HOLD milliseconds after the signal becomes consistently LOW.
+
+By tuning the SETUP threshold we solve the TV remote issue and by tuning
+the HOLD threshold we deal with EMI or other hardware issues.
 
 ### State Machine
 
