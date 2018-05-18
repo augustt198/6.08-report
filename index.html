@@ -167,14 +167,6 @@ the laser gun.
     <img src="media/ui_state_machine.svg">
 </center>
 
-## Server
-
-Game managment and play happen entirely on the server. Through GET requests, users will be able
-to see information about ongoing and previous games, such as all the actions that take place
-(whether a person fired their gun or was hit), all the players currently in a game, all active games
-taking place, and the overall highscores from all the games that have occurred. POST requests
-handle changes to games, which consists of submitting actions that occured and hosting and joining games.
-
 ### API definitions:
 
 - screen.h
@@ -398,6 +390,43 @@ The falling edge triggers HOLD milliseconds after the signal becomes consistentl
 
 By tuning the SETUP threshold we solve the TV remote issue and by tuning
 the HOLD threshold we deal with EMI or other hardware issues.
+
+## Website
+
+Our web app dashboard is implemented using a simple Bootstrap grid layout and
+a javascript function running within a fast setInterval.
+
+We use promised HHTP requests through the new fetch function that is slowly
+becoming the new standard. We implemented endpoints on our backend dedicated to
+this website. For manageability purposes starting and ending games can happen
+through the dashboard too. Due to the lack of buttons, there is no intuitive
+way to have UI interactions while in-game, hence why game lifecycle buttons on
+our web app turn out to be quite useful.
+
+## Server
+
+Game managment and play happen entirely on the server. Through GET requests, users will be able
+to see information about ongoing and previous games, such as all the actions that take place
+(whether a person fired their gun or was hit), all the players currently in a game, all active games
+taking place, and the overall highscores from all the games that have occurred. POST requests
+handle changes to games, which consists of submitting actions that occured and hosting and joining games.
+
+Below you can find our database schema
+```
+c.execute('''CREATE TABLE IF NOT EXISTS actions (id integer primary key AUTOINCREMENT, timing timestamp, action text, pid integer, isValid boolean);''')
+c.execute('''CREATE TABLE IF NOT EXISTS players (id integer primary key AUTOINCREMENT, name text, team text, kills integer, deaths integer);''')
+c.execute('''CREATE TABLE IF NOT EXISTS highscores (name text primary key UNIQUE, kills integer);''')
+c.execute('''CREATE TABLE IF NOT EXISTS games (gameid integer primary key AUTOINCREMENT, game_type text, end_cond text, game_state integer, hostname text, endtime timestamp);''')
+```
+
+Upon joining, the client must remember their player id in order to be able to make
+personalized requests.
+
+Due to the severe limitations of the 6.08 server, we did not consider modularizing
+the code beyond splitting server side actions into functions invoked by our request handler.
+Lack of proper routing and method support that is native to Flask meant that we
+had to opt for url-encoded endpoint emulation.
+
 
 ## Software Challenges
 
