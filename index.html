@@ -209,6 +209,9 @@ From this we gathered data which confirms an inverse relation between the receiv
 
 where y is 1 / t_rec.duration in ms^-1 and x is the angle in degrees.
 
+Using this, we implemented the algorithm detailed in the debouncers section below,
+and informed our constant tunings.
+
 # Software
 
 ## ESP32
@@ -446,6 +449,11 @@ The falling edge triggers HOLD milliseconds after the signal becomes consistentl
 
 By tuning the SETUP threshold we solve the TV remote issue and by tuning
 the HOLD threshold we deal with EMI or other hardware issues.
+
+Using the graph in the experimental section above we picked the following constants:
+- Transmission duration = 300ms
+- RCV_SETUP = 25ms
+- RCV_HOLD = 100ms
 
 ## Website
 
