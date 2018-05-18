@@ -1,13 +1,33 @@
 <!DOCTYPE html>
 <html>
-
-<style>
-    th { width: 50%; max-height: 300px; }
-    .container { max-width: 900px; }
-</style>
 <title>6.08 Final Project: Laser Tag</title>
 
 <xmp theme="united" style="display:none;">
+
+#Laser Tag
+
+### 6.08 Spring 2018 | August Trollback, Nickolas Stathas, Ramya Durvasula, Renee Silva
+
+# Introduction
+
+In a traditional game of laser tag, players, armed with infrared guns, fire at each other to
+score points or disable their opponents. In an attempt to recreate the fun of this exciting
+pasttime, without the price tag, our group designed <i>Laser Tag!!!</i>. Complete with custom
+hardware and wearable armor, <i>Laser Tag!!!</i> was a great way to integrate and extend the
+knowledge we gained from 6.08.
+
+# System Overview
+
+Our system consists of several modules: ESP32s, wearable "armor," a gameplay server, and a website.
+The ESP32 code, written in Arduino, interfaces with several infrared receivers (the targets), a speaker,
+and a handheld infrared emitter (the gun). Each ESP32 and its associated components are attached
+to a wearable device, and are connected via wires. The ESP32s use HTML GET and POST requests to communicate
+with the game server, which keeps track of the current game, its players, and all game actions. Additionally,
+the game server keeps track of high scores. The website is used to start games, view scores during games, and
+forceably end games if need be.
+
+Typical gameplay 
+
 # Hardware
 
 Three different custom printed circuit boards (PCBs) were designed, and several of each type
@@ -59,23 +79,18 @@ of the BJT to ground in order to toggle IR pulses.
 The master board serves as a centralized place to mount boards (ESP32, power board, DFPlayer)
 and distribute power/signals.
 
-<img src="media/masterboard_schematic.png">|<img src="media/masterboard_layout.png">
----|---
-Master board schematic | Master board PCB layout
-
 ### Connectors/Cables
 
 Cables were cut to length, stripped, crimped, and heat shrunk
 
-<img src="media/cable_crimps.jpg">|<img src="media/cables2.jpg">
----|---
-Crimps | Connectivity between boards
+<img src="media/cable_crimps.jpg" width="60%" style="margin: 0 auto; display: block">
+
+<img src="media/cables2.jpg" width="60%" style="margin: 0 auto; display: block">
 
 ### Laser Gun
 
-The laser gun was modeled in Autodesk Inventor and designed so that it could be fitted with the IR
+The laser gun was modeled in Autodesk inventor and designed so that it could be fitted with the IR
 emitter LED inside the barrel and the driving circuitry in the handle.
-
 
 Cutaway rendering of the assembly:
 
@@ -164,7 +179,6 @@ DFPlayer Mini | [DFPlayer Mini](https://www.dfrobot.com/wiki/index.php/DFPlayer_
 - [Receiver module PCB gerbers](downloads/receiver_gerber.zip)
 - [Emitter module PCB gerbers](downloads/emitter_gerber.zip)
 - [Master board PCB gerbers](downloads/masterboard_gerber.zip)
-
 
 </xmp>
 
