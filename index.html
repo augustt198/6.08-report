@@ -33,7 +33,7 @@ knowledge we gained from 6.08.
 Our system consists of several modules: ESP32s, wearable "armor," a gameplay server, and a website.
 The ESP32 code, written in Arduino, interfaces with several infrared receivers (the targets), a speaker,
 and a handheld infrared emitter (the gun). Each ESP32 and its associated components are attached
-to a wearable device, and are connected via wires. The ESP32s use HTML GET and POST requests to communicate
+to a wearable device, and are connected via wires. The ESP32s use HTTP GET and POST requests to communicate
 with the game server, which keeps track of the current game, its players, and all game actions. Additionally,
 the game server keeps track of high scores. The website is used to start games, view scores during games, and
 forceably end games if need be. Although originally intended to be played as a 2v2 game, and ultimately
@@ -137,7 +137,7 @@ minimum price.
 ### Connectors/Cables
 
 Cables were cut to length, stripped, crimped, and heat shrunk. For the laser gun cables,
-it was necessary to
+it was necessary to swap two of the inner conductors because of a PCB issue.
 
 <img src="media/cable_crimps.jpg">|<img src="media/cables2.jpg">
 ---|---
@@ -467,6 +467,11 @@ through the dashboard too. Due to the lack of buttons, there is no intuitive
 way to have UI interactions while in-game, hence why game lifecycle buttons on
 our web app turn out to be quite useful.
 
+<center>
+    <iframe width="700" height="400" src="https://www.youtube.com/embed/4ykTQO8X8RM" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</center>
+
+
 ## Server
 
 Game managment and play happen entirely on the server. Through GET requests, users will be able
@@ -500,10 +505,6 @@ determing when a game should end. This proved to be a bigger obstacle than we an
 decided to have the end time determined by when the Start Game button was pressed. Whenever a player joins
 that game through a POST request, it returns the time left in the game. This way, there is no need
 for any kind of "synchronization" of clocks multiple times.
-
-<center>
-    <iframe width="700" height="400" src="https://www.youtube.com/embed/4ykTQO8X8RM" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-</center>
 
 # Energy Management
 
